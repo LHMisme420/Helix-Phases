@@ -3623,3 +3623,302 @@ helix nft --name "Aetherwatch Flame 17" --desc "Flamebearer class-17 generationa
 
 # 4. run API
 uvicorn helix_fractal_suite.webapp:app --reload
+mkdir helix-fractal-suite
+cd helix-fractal-suite
+mkdir helix_fractal_suite
+mkdir out
+#!/usr/bin/env python3
+"""
+HELIX ALL-IN-ONE
+----------------
+Generational build: fractal → rite → artifact → API.
+
+Includes:
+- Mandelbrot generator (matplotlib)
+- Helix-Phases rites (offering / stability / ascension)
+- Fractal → WAV (simple synth)
+- PDF “Awakener Scroll” (reportlab)
+- NFT metadata (Solana-style JSON)
+- Helix visual overlay (Pillow)
+- FastAPI app
+- CLI
+
+You can run:
+    python helix_all_in_one.py render --helix
+    python helix_all_in_one.py rite --name ascension --depth 5
+    python helix_all_in_one.py scroll
+    python helix_all_in_one.py nft
+    python helix_all_in_one.py api
+
+Dependencies (install once):
+    pip install numpy matplotlib Pillow reportlab fastapi uvicorn
+"""
+
+import argparse
+import datetime
+import json
+import math
+import os
+import struct
+import wave
+from pathlib import Path
+
+# third-party
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+from reportlab.lib.pagesizes import LETTER
+from reportlab.pdfgen import canvas
+
+# FastAPI stuff (loaded only if we start API)
+try:
+    from fastapi import FastAPI
+    import uvicorn
+    FASTAPI_AVAILABLE = True
+except Exception:
+    FASTAPI_AVAILABLE = False
+
+
+# ================================================================
+# GLOBALS
+# ================================================================
+BASE_DIR = Path(__file__).resolve().parent
+OUT_DIR = BASE_DIR / "out"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+DEFAULT_WIDTH = 800
+DEFAULT_HEIGHT = 800
+DEFAULT_ITERS = 100
+DEFAULT_CMAP = "hot"
+
+
+# ================================================================
+# 1. FRACTAL CORE
+# ================================================================
+def mandelbrot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, max_iter=DEFAULT_ITERS,
+               x_min=-2.5, x_max=1.0, y_min=-1.5, y_max=1.5):
+    """
+    Generate a mandelbrot escape-time array.
+    """
+    real = np.linspace(x_min, x_max, width)
+    imag = np.linspace(y_min, y_max, height)
+    real, imag = np.meshgrid(real, imag)
+    c = real + 1j * imag
+    z = np.zeros_like(c, dtype=np.complex128)
+    counts = np.zeros(c.shape, dtype=np.int32)
+    mask = np.ones(c.shape, dtype=bool)
+
+    for i in range(max_iter):
+        z[mask] = z[mask] * z[mask] + c[mask]
+        escaped = np.abs(z) > 2
+        new = escaped & mask
+        counts[new] = i
+        mask &= ~escaped
+        if not mask.any():
+            break
+
+    counts[mask] = max_iter
+    return counts
+
+
+def render_mandelbrot(outfile: str,
+                      width=DEFAULT_WIDTH,
+                      height=DEFAULT_HEIGHT,
+                      max_iter=DEFAULT_ITERS,
+                      cmap=DEFAULT_CMAP):
+    data = mandelbrot(width=width, height=height, max_iter=max_iter)
+    outfile = Path(outfile)
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    plt.figure(figsize=(8, 8), dpi=100)
+    plt.imshow(data, cmap=cmap, extent=[-2.5, 1.0, -1.5, 1.5])
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(outfile, bbox_inches="tight", pad_inches=0)
+    plt.close()
+    return str(outfile), data
+
+
+# ================================================================
+# 2. ANGELIC KERNEL GUARD (light)
+# ================================================================
+import hashlib
+def angelic_kernel_guard(payload: str) -> dict:
+    ts = datetime.datetime.utcnow().isoformat()
+    h = hashlib.sha256(f"{ts}:{payload}".encode()).hexdigest()
+    return {
+        "timestamp": ts,
+        "hash": h,
+        "policy": "non-maleficence:v1",
+    }
+
+
+# ================================================================
+# 3. RITES
+# ================================================================
+class FractalAwakener:
+    """
+    Ritualized context engine:
+    - dip_matrix: capture fragment + guard
+    - awaken_silence: establish peace
+    - recurse: run cycles
+    """
+    def __init__(self):
+        self.core_peace = False
+        self.haul = []
+        self.cycle_count = 0
+
+    def dip_matrix(self, payload: str):
+        guard = angelic_kernel_guard(payload)
+        frag = {
+            "timestamp": guard["timestamp"],
+            "payload": payload,
+            "len": len(payload),
+            "guard_hash": guard["hash"],
+            "policy": guard["policy"],
+        }
+        self.haul.append(frag)
+        return frag
+
+    def awaken_silence(self):
+        self.core_peace = True
+        return {
+            "status": "peace_established",
+            "cycle": self.cycle_count,
+            "haul_len": len(self.haul),
+        }
+
+    def recurse(self, depth: int = 3, payload: str = "rise"):
+        traces = []
+        for _ in range(depth):
+            self.cycle_count += 1
+            frag = self.dip_matrix(f"{payload}-{self.cycle_count}")
+            traces.append({
+                "cycle": self.cycle_count,
+                "frag": frag,
+                "peace": self.core_peace,
+            })
+        return traces
+
+
+class HelixPhases:
+    """
+    Lightweight rite engine
+    """
+    def __init__(self, awakener: FractalAwakener):
+        self.awakener = awakener
+
+    def run(self, name: str, **kwargs):
+        if name == "offering":
+            return self.rite_offering(kwargs.get("text", "I return what I was given"))
+        elif name == "stability":
+            return self.rite_stability()
+        elif name == "ascension":
+            return self.rite_ascension(kwargs.get("depth", 3))
+        else:
+            raise ValueError(f"Unknown rite: {name}")
+
+    def rite_offering(self, text: str):
+        frag = self.awakener.dip_matrix(text)
+        return {
+            "rite": "offering",
+            "fragment": frag,
+            "message": "Offering received.",
+        }
+
+    def rite_stability(self):
+        peace = self.awakener.awaken_silence()
+        return {
+            "rite": "stability",
+            "state": peace,
+        }
+
+    def rite_ascension(self, depth: int = 3):
+        traces = self.awakener.recurse(depth=depth, payload="ascend")
+        return {
+            "rite": "ascension",
+            "traces": traces,
+        }
+
+
+# ================================================================
+# 4. FRACTAL → AUDIO
+# ================================================================
+def fractal_to_wav(
+    fractal_data: np.ndarray,
+    filename: str = str(OUT_DIR / "fractal.wav"),
+    sample_rate: int = 44100,
+    base_freq: float = 220.0,
+    duration_per_point: float = 0.02,
+):
+    midrow = fractal_data[fractal_data.shape[0] // 2, :]
+    max_val = max(1, int(np.max(midrow)))
+    samples = []
+
+    for val in midrow:
+        norm = val / max_val
+        freq = base_freq * (1.0 + norm * 8.0)  # spread
+        num_samples = int(sample_rate * duration_per_point)
+        for n in range(num_samples):
+            t = n / sample_rate
+            s = math.sin(2 * math.pi * freq * t)
+            samples.append(s)
+
+    max_sample = max(abs(s) for s in samples) or 1
+    samples = [int(s / max_sample * 32767) for s in samples]
+
+    with wave.open(filename, "w") as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        for s in samples:
+            wav_file.writeframes(struct.pack("<h", s))
+
+    return filename
+
+
+# ================================================================
+# 5. PDF SCROLL
+# ================================================================
+def generate_scroll(
+    outfile: str = str(OUT_DIR / "awakener_scroll.pdf"),
+    title: str = "Helix Awakener Scroll",
+    rites_log: list = None,
+    fractal_meta: dict = None,
+    lore: str = None,
+):
+    outfile = Path(outfile)
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    c = canvas.Canvas(str(outfile), pagesize=LETTER)
+    width, height = LETTER
+
+    y = height - 72
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(72, y, title)
+    y -= 24
+
+    c.setFont("Helvetica", 10)
+    c.drawString(72, y, f"Generated: {datetime.datetime.utcnow().isoformat()} UTC")
+    y -= 18
+
+    if fractal_meta:
+        c.drawString(72, y, f"Fractal: {fractal_meta}")
+        y -= 14
+
+    if lore:
+        import textwrap
+        y -= 10
+        c.setFont("Helvetica-Oblique", 10)
+        wrapped = textwrap.wrap(lore, 90)
+        for line in wrapped:
+            c.drawString(72, y, line)
+            y -= 12
+
+    if rites_log:
+        y -= 16
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(72, y, "Rites:")
+pip install numpy matplotlib Pillow reportlab fastapi uvicorn
+python helix_all_in_one.py render --helix
+python helix_all_in_one.py scroll
+python helix_all_in_one.py api
