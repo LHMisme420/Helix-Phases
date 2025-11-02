@@ -3930,3 +3930,115 @@ git push origin v1.0
 - **Commit Hash:** <your commit hash>
 - **White Paper:** [link]
 - **Proof of Authorship:** IPFS / Arweave hash
+{
+  "name": "Helix Continuum Rollout",
+  "desc": "Full project board for the Helix-Phases generational framework. Five rollout phases with detailed tasks, milestones, and placeholders for dates.",
+  "prefs": { "permissionLevel": "private" },
+  "lists": [
+    {
+      "name": "Phase I – Research & Documentation",
+      "cards": [
+        {
+          "name": "Expand White Paper",
+          "desc": "Draft 30-page research booklet elaborating on architecture, philosophy, and use-cases. Target: Q4 2025."
+        },
+        {
+          "name": "Write 'Computation as Ritual' Essay",
+          "desc": "Compose a 2–3 k word essay framing Helix-Phases as computational spirituality. Target: Dec 2025."
+        },
+        {
+          "name": "Write 'Ethical Recursion in Generative Systems' Essay",
+          "desc": "Technical article for AI-ethics or media-studies journals. Target: Jan 2026."
+        },
+        {
+          "name": "Register DOI / Timestamp",
+          "desc": "Use Filecoin / Arweave to create verifiable timestamps for PDFs and essays. Target: Feb 2026."
+        }
+      ]
+    },
+    {
+      "name": "Phase II – Creative / Art Direction",
+      "cards": [
+        {
+          "name": "Generate 20 Fractal Overlays",
+          "desc": "Use helix_all_in_one.py to render high-res visuals with sigil overlays; curate the top 20. Target: Mar 2026."
+        },
+        {
+          "name": "Compose Helix Soundscapes Album",
+          "desc": "Convert fractal escape-times to audio; mix 5–7 ambient tracks. Target: Apr 2026."
+        },
+        {
+          "name": "Design Gallery Installation",
+          "desc": "Mock up an exhibit concept combining projection, audio, and ritual narration. Target: May 2026."
+        },
+        {
+          "name": "Publish Online Gallery",
+          "desc": "Launch digital exhibit linking images, audio, and scrolls. Target: Jun 2026."
+        }
+      ]
+    },
+    {
+      "name": "Phase III – Applied Research / Tech",
+      "cards": [
+        {
+          "name": "Develop AngelicKernel Library",
+          "desc": "Package non-maleficence hashing and policy checks as a pip module. Target: Mar 2026."
+        },
+        {
+          "name": "Write Technical Documentation",
+          "desc": "API reference and usage guides for AngelicKernel; publish on ReadTheDocs. Target: Apr 2026."
+        },
+        {
+          "name": "Create AI-Ethics Demo Notebook",
+          "desc": "Demonstrate provenance tracking in small-language-model workflow. Target: May 2026."
+        },
+        {
+          "name": "Pitch Collaboration to University / Lab",
+          "desc": "Send proposals to ethics & AI-safety labs. Target: Jun 2026."
+        }
+      ]
+    },
+    {
+      "name": "Phase IV – Community & Impact",
+      "cards": [
+        {
+          "name": "Build Website (Helix-Continuum.org)",
+          "desc": "Central hub with white paper, gallery, and code links. Target: Jul 2026."
+        },
+        {
+          "name": "Launch Discord / Mailing List",
+          "desc": "Community space for Helix Builders and collaborators. Target: Aug 2026."
+        },
+        {
+          "name": "Schedule 'Rite of Creation' Livestreams",
+          "desc": "Monthly event showing new fractal & reflection. Target: Sep 2026."
+        },
+        {
+          "name": "Publish Community Guidelines",
+          "desc": "Outline ethical and creative standards for contributors. Target: Sep 2026."
+        }
+      ]
+    },
+    {
+      "name": "Phase V – Legacy / Monetization",
+      "cards": [
+        {
+          "name": "Mint Founder's NFT Collection",
+          "desc": "Limited run of verified fractal scrolls with metadata hashes. Target: Oct 2026."
+        },
+        {
+          "name": "Apply for Digital-Art / Ethics Grants",
+          "desc": "Submit proposals to Mozilla, NEA Digital, or similar. Target: Nov 2026."
+        },
+        {
+          "name": "Organize Exhibition or Talk",
+          "desc": "Present Helix Continuum at digital-art or AI-ethics events. Target: Dec 2026."
+        },
+        {
+          "name": "Archive All Artifacts",
+          "desc": "Store final outputs on IPFS / Arweave + institutional repositories. Target: Jan 2027."
+        }
+      ]
+    }
+  ]
+}
