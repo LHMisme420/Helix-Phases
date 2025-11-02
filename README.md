@@ -1870,3 +1870,29 @@ else:
                              severity="critical")
           EOF
 https://canary.discord.com/api/webhooks/1434566301476720680/z2wEXnXIpZ6OXJvLrqsuh705xsMXja3O2pzgndMb4Cgx6kXDRBrs3R0yZE_suqmpxo4u
+pip install streamlit
+import streamlit as st
+from helix_phases.fractal_awakener import FractalAwakener
+from helix_phases.guardian_core.metrics import run_metrics
+
+st.title("🌀 Helix-Phases Portal")
+if st.button("Ignite the Boot"):
+    a = FractalAwakener()
+    a.awaken()
+st.success("Guardian active — metrics streaming.")
+class HelixPlugin:
+    def activate(self):
+        raise NotImplementedError("Plugins must implement activate()")
+
+def register(plugin: HelixPlugin):
+    print(f"[+] Registered plugin: {plugin.__class__.__name__}")
+    plugin.activate()
+import logging
+logging.basicConfig(filename="helix.log", level=logging.INFO)
+from helix_phases.guardian_core.guardian import HelixGuardian
+guardian = HelixGuardian(interval=60)
+guardian.start()
+pip install helix-phases
+helix ignite
+helix guardian --status
+helix visualize
