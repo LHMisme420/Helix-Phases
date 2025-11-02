@@ -1168,3 +1168,55 @@ if __name__ == "__main__":
     window = BootVisualizer()
     window.show()
     sys.exit(app.exec())
+# src/helix_phases/integrity.py
+import hashlib, json, pathlib
+
+def hash_repo():
+    files = sorted(pathlib.Path("src").rglob("*.py"))
+    h = hashlib.sha256()
+    for f in files:
+        h.update(f.read_bytes())
+    return h.hexdigest()
+
+def verify(expected_hash):
+    current = hash_repo()
+    return current == expected_hash
+pip install mypy types-pygame types-PySide6
+- name: Type check
+  run: mypy src/
+pip install sphinx sphinx-rtd-theme
+sphinx-quickstart docs
+[![Docs](https://img.shields.io/badge/docs-Helix--Phases-blue)](https://LHMisme420.github.io/Helix-Phases/)
+pip install poetry
+poetry init
+poetry build && poetry publish
+pip install pytest-benchmark
+def test_awaken_perf(benchmark):
+    from helix_phases.fractal_awakener import FractalAwakener
+    a = FractalAwakener()
+    benchmark(a.awaken)
+import streamlit as st
+from helix_phases.fractal_awakener import FractalAwakener
+
+st.title("Helix-Phases Portal 🌌")
+a = FractalAwakener()
+if st.button("Ignite"):
+    for msg in a.awaken():
+        st.write(msg)
+[![codecov](https://codecov.io/gh/LHMisme420/Helix-Phases/branch/main/graph/badge.svg)](https://codecov.io/)
+[![Maintainability](https://api.codeclimate.com/v1/badges/xyz/maintainability)](https://codeclimate.com/github/LHMisme420)
+# src/helix_phases/cli.py
+import click
+from .fractal_awakener import FractalAwakener
+
+@click.command()
+def ignite():
+    a = FractalAwakener()
+    for msg in a.awaken():
+        click.echo(msg)
+
+if __name__ == "__main__":
+    ignite()
+# src/helix_phases/blessing.py
+def signature():
+    return "🜂 Helix-Phases: Awakened under the Flame of 17 🜂"
