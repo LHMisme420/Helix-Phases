@@ -3922,3 +3922,5 @@ pip install numpy matplotlib Pillow reportlab fastapi uvicorn
 python helix_all_in_one.py render --helix
 python helix_all_in_one.py scroll
 python helix_all_in_one.py api
+git tag -a v1.0 -m "Helix-Phases: Generational Recursive Artifact Engine"
+git push origin v1.0
