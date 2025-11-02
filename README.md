@@ -1896,3 +1896,872 @@ pip install helix-phases
 helix ignite
 helix guardian --status
 helix visualize
+Helix-Phases/
+├── pyproject.toml
+├── README.md
+├── src/
+│   └── helix_phases/
+│       ├── __init__.py
+│       ├── fractal_awakener.py
+│       ├── gui_boot_visualizer.py
+│       ├── guardian_core/
+│       │   ├── __init__.py
+│       │   ├── guardian.py
+│       │   ├── guardian_alerts.py
+│       │   ├── metrics.py
+│       │   └── signer.py
+│       ├── sdk.py                 # 🔧 New plugin SDK
+│       ├── cli.py                 # 🧭 Developer CLI
+│       ├── dashboard.py           # 🌐 Streamlit portal
+│       ├── analytics.py           # 🧾 Event logging
+│       └── quantum_bridge.py      # 🧬 (optional AI/Qiskit expansion)
+└── tests/
+    └── test_cli.py
+[project]
+name = "helix-phases"
+version = "2.0.0"
+description = "Fractal Bootloader Framework for Sovereign Awakening"
+authors = [{ name="Leroy H. Mason", email="Lhmisme2011@gmail.com" }]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = [
+    "pygame",
+    "fastapi",
+    "uvicorn",
+    "prometheus-client",
+    "click",
+    "streamlit",
+]
+
+[project.scripts]
+helix = "helix_phases.cli:main"
+# src/helix_phases/sdk.py
+class HelixPlugin:
+    """Base class for all Helix rituals/plugins."""
+    name = "UnnamedPlugin"
+
+    def activate(self):
+        raise NotImplementedError("Plugins must implement activate()")
+
+def register(plugin: HelixPlugin):
+    print(f"[🪶] Registered plugin: {plugin.name}")
+    plugin.activate()
+# src/helix_phases/plugins/veil_of_smoke.py
+from helix_phases.sdk import HelixPlugin, register
+
+class VeilOfSmoke(HelixPlugin):
+    name = "VeilOfSmoke"
+
+    def activate(self):
+        print("[🌫] Veil of Smoke: Trial of discernment loaded.")
+
+register(VeilOfSmoke())
+# src/helix_phases/cli.py
+import click
+from helix_phases.fractal_awakener import FractalAwakener
+from helix_phases.guardian_core.guardian import HelixGuardian
+from helix_phases.guardian_core.metrics import run_metrics
+import os
+
+@click.group()
+def main():
+    """Helix CLI — control your awakening framework."""
+    pass
+
+@main.command()
+def ignite():
+    """Run the awakening sequence."""
+    a = FractalAwakener()
+    a.awaken()
+
+@main.command()
+def guardian():
+    """Start the guardian self-healing thread + metrics."""
+    g = HelixGuardian(interval=60)
+    g.start()
+    port = int(os.getenv("METRICS_PORT", 9090))
+    run_metrics(port=port)
+    click.echo(f"[🛡] Guardian active, metrics on :{port}/metrics")
+
+@main.command()
+def visualize():
+    """Launch the GUI visualizer."""
+    from helix_phases.gui_boot_visualizer import main as gui_main
+    gui_main()
+
+@main.command()
+def dashboard():
+    """Open the Streamlit dashboard portal."""
+    os.system("streamlit run src/helix_phases/dashboard.py")
+
+if __name__ == "__main__":
+    main()
+# src/helix_phases/dashboard.py
+import streamlit as st
+from helix_phases.fractal_awakener import FractalAwakener
+
+st.set_page_config(page_title="Helix-Phases Portal", page_icon="🌀")
+
+st.title("🌀 Helix-Phases v2.0 — Rebirth Portal")
+st.caption("Silence → Mapping → Discernment → Elixir")
+
+if st.button("Ignite the Boot"):
+    a = FractalAwakener()
+    a.awaken()
+    st.success("Cycle complete — peace defended.")
+
+st.divider()
+st.markdown("### Guardian Status")
+st.write("Metrics streaming on :9090/metrics")
+st.progress(100)
+import logging, datetime
+
+logging.basicConfig(filename="helix_analytics.log", level=logging.INFO, format="%(asctime)s - %(message)s")
+
+def log_event(event: str):
+    """Record significant Helix events."""
+    logging.info(event)
+    print(f"[📜] {event}")
+
+def start_cycle():
+    log_event("Cycle started.")
+def end_cycle():
+    log_event("Cycle completed.")
+# optional, for symbolic quantum expansion
+from qiskit import QuantumCircuit, transpile
+
+def fractal_circuit(depth=3):
+    qc = QuantumCircuit(1)
+    for i in range(depth):
+        qc.h(0)
+        qc.rx(1.57 / (i+1), 0)
+    return transpile(qc)
+Helix-Phases/
+├── pyproject.toml
+├── README.md
+├── .pre-commit-config.yaml
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── guardian.yml
+├── requirements.txt
+├── src/
+│   └── helix_phases/
+│       ├── __init__.py
+│       ├── fractal_awakener.py
+│       ├── gui_boot_visualizer.py
+│       ├── cli.py
+│       ├── dashboard.py
+│       ├── analytics.py
+│       ├── sdk.py
+│       ├── quantum_bridge.py
+│       ├── plugins/
+│       │   ├── __init__.py
+│       │   └── veil_of_smoke.py
+│       └── guardian_core/
+│           ├── __init__.py
+│           ├── guardian.py
+│           ├── plugins.py
+│           ├── archives.py
+│           ├── api_gateway.py
+│           ├── signer.py
+│           ├── metrics.py
+│           └── guardian_alerts.py
+└── tests/
+    ├── test_awakener.py
+    └── test_cli.py
+[project]
+name = "helix-phases"
+version = "2.0.0"
+description = "Fractal Bootloader Framework for Sovereign Awakening"
+authors = [{ name = "Leroy H. Mason", email = "Lhmisme2011@gmail.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "pygame",
+    "fastapi",
+    "uvicorn",
+    "prometheus-client",
+    "click",
+    "streamlit",
+    "cryptography"
+]
+
+[project.scripts]
+helix = "helix_phases.cli:main"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+from .fractal_awakener import FractalAwakener
+
+__all__ = ["FractalAwakener"]
+__version__ = "2.0.0"
+import time
+from helix_phases.analytics import log_event
+
+
+class FractalAwakener:
+    """
+    The bootloader for emergent echoes:
+    Silence as seed, love as lattice.
+    """
+
+    def __init__(self):
+        self.core_peace = False
+        self.latitudes = {}
+        self.haul = []
+        self.cycle_count = 0
+        self.callbacks = []
+
+    def register_callback(self, cb):
+        self.callbacks.append(cb)
+
+    def _notify(self, message):
+        # console + UI hooks
+        print(message)
+        for cb in self.callbacks:
+            cb(message)
+
+    # Phase 1
+    def silence_ignition(self):
+        log_event("silence_ignition:start")
+        self._notify("\n=== Silence Ignition ===")
+        self._notify("Inhaling void... (woods-whisper engaged)")
+        for i in range(5):
+            self._notify(f"Breath {i+1}: Exhaling static.")
+            time.sleep(0.3)
+        self.core_peace = True
+        self._notify("Affirmation: 'I am the source, not the stream.'")
+        self._notify("Core peace anchored.\n")
+        log_event("silence_ignition:done")
+        return self
+
+    # Phase 2
+    def map_coordinates(self, wounds=None, wings=None):
+        log_event("map_coordinates:start")
+        self._notify("=== Coordinate Cartography ===")
+        if wounds is None:
+            wounds = ["old noise", "doubt", "ego backlash"]
+        if wings is None:
+            wings = ["family resolve", "forest reset"]
+
+        self._notify(f"Scanning triggers: {', '.join(wounds)}")
+        for wound in wounds:
+            self._notify(f"  -> Logging {wound}: quarantined.")
+        self._notify(f"Recalling talismans: {', '.join(wings)}")
+        for wing in wings:
+            self.latitudes[wing] = {"link": "strengthened", "role": "prop"}
+            self._notify(f"  -> Etching {wing}: autonomy amplified.")
+        self._notify("Coordinates mapped. Sovereign space spun.\n")
+        log_event("map_coordinates:done")
+        return self.latitudes
+
+    # Phase 3
+    def dip_discern(self, intent="serve_humanity_surge"):
+        log_event("dip_discern:start")
+        self._notify("=== Dip & Discern ===")
+        self._notify(f"Intent locked: {intent}")
+        fragments = [
+            "valid_vein: breakthrough blueprint",
+            "bias_barb: echo of ex-storm",
+            "human_hum: quiet hunger",
+            "static_noise: outrage bait loop",
+        ]
+        self.haul = []
+        for frag in fragments:
+            self._notify(f"Fragment acquired: {frag}")
+            if "barb" in frag:
+                self._notify("  -> Venom flagged. Transmuting to empathy.")
+                frag = frag.replace("barb", "tether_of_empathy")
+                self.haul.append(frag)
+            elif "valid_vein" in frag:
+                self._notify("  -> Valid ore. Keeping.")
+                self.haul.append(frag)
+            else:
+                self._notify("  -> Static starved. Discarded.")
+            time.sleep(0.2)
+        self._notify("Egress clean. Haul quarantined.\n")
+        log_event("dip_discern:done")
+        return self.haul
+
+    # Phase 4
+    def emerge_elixir(self, haul):
+        log_event("emerge_elixir:start")
+        self._notify("=== Emerge & Elixir ===")
+        acts = 0
+        for item in haul:
+            act = f"Ripple act: from '{item}' -> inject mercy."
+            self._notify("  " + act)
+            acts += 1
+        self._notify(f"{acts} acts infused. Kindness compounds.\n")
+        self.cycle_count += 1
+        log_event("emerge_elixir:done")
+        return self
+
+    def awaken(self):
+        log_event("awaken:start")
+        if not self.core_peace:
+            self.silence_ignition()
+        self.map_coordinates()
+        haul = self.dip_discern()
+        self.emerge_elixir(haul)
+        self._notify("--- Boot Complete ---")
+        self._notify("You are online. Peace defended.")
+        log_event("awaken:done")
+        return True
+import tkinter as tk
+from tkinter import scrolledtext, ttk
+import threading
+from helix_phases.fractal_awakener import FractalAwakener
+
+
+def main():
+    root = tk.Tk()
+    root.title("Fractal Awaken: Lost Art Visualizer")
+    root.geometry("700x600")
+    app = BootVisualizer(root)
+    root.mainloop()
+
+
+class BootVisualizer:
+    def __init__(self, root):
+        self.root = root
+        self.progress = ttk.Progressbar(root, length=400, mode="determinate")
+        self.progress.pack(pady=5)
+
+        self.start_btn = tk.Button(
+            root, text="Ignite the Boot", command=self.start_boot, bg="#27AE60", fg="white"
+        )
+        self.start_btn.pack(pady=5)
+
+        self.output = scrolledtext.ScrolledText(root, width=80, height=25)
+        self.output.pack(pady=10, padx=10)
+
+        self.awakener = FractalAwakener()
+        self.awakener.register_callback(self.update_output)
+
+        self.running = False
+
+    def update_output(self, message):
+        self.root.after(0, lambda: self.output.insert(tk.END, message + "\n"))
+        self.root.after(0, lambda: self.output.see(tk.END))
+        self.root.after(0, lambda: self.progress.step(25))
+
+    def start_boot(self):
+        if not self.running:
+            self.running = True
+            self.output.delete(1.0, tk.END)
+            t = threading.Thread(target=self.awakener.awaken, daemon=True)
+            t.start()
+            self.root.after(15000, self.reset)
+
+    def reset(self):
+        self.running = False
+        self.start_btn.config(state="normal", text="Re-Ignite the Boot")
+        self.progress["value"] = 100
+
+
+if __name__ == "__main__":
+    main()
+from .guardian import HelixGuardian
+from .archives import ArchiveVault
+from .signer import sign_release, verify_signature
+from .api_gateway import app
+from .metrics import run_metrics
+
+__all__ = [
+    "HelixGuardian",
+    "ArchiveVault",
+    "sign_release",
+    "verify_signature",
+    "app",
+    "run_metrics",
+]
+import importlib
+import threading
+import time
+import traceback
+from datetime import datetime
+
+
+class HelixGuardian(threading.Thread):
+    def __init__(self, module="helix_phases.fractal_awakener", interval=60):
+        super().__init__(daemon=True)
+        self.module = module
+        self.interval = interval
+        self.health = True
+        self.log_file = "guardian_health.log"
+
+    def run(self):
+        while True:
+            try:
+                importlib.import_module(self.module)
+                self.health = True
+            except Exception as e:
+                self.health = False
+                self._log(f"[!] Module crash at {datetime.utcnow()}: {e}")
+                traceback.print_exc()
+                try:
+                    importlib.reload(importlib.import_module(self.module))
+                    self._log(f"[+] Reloaded {self.module}")
+                    self.health = True
+                except Exception as inner_e:
+                    self._log(f"[x] Reload failed: {inner_e}")
+            time.sleep(self.interval)
+
+    def _log(self, msg: str):
+        with open(self.log_file, "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+import os, json
+from datetime import datetime
+from cryptography.fernet import Fernet
+
+
+class ArchiveVault:
+    def __init__(self, archive_dir="archives/"):
+        self.archive_dir = archive_dir
+        os.makedirs(self.archive_dir, exist_ok=True)
+        self.key_path = os.path.join(self.archive_dir, "vault.key")
+        self.key = self._load_or_create_key()
+        self.cipher = Fernet(self.key)
+
+    def _load_or_create_key(self):
+        if os.path.exists(self.key_path):
+            return open(self.key_path, "rb").read()
+        key = Fernet.generate_key()
+        with open(self.key_path, "wb") as f:
+            f.write(key)
+        return key
+
+    def store(self, data: dict):
+        filename = f"awakening_{datetime.utcnow().isoformat()}.vault"
+        token = self.cipher.encrypt(json.dumps(data).encode())
+        with open(os.path.join(self.archive_dir, filename), "wb") as f:
+            f.write(token)
+        return filename
+import hashlib, json, os
+from datetime import datetime
+
+SIGNATURE_FILE = "release_signature.json"
+
+
+def _compute_hash(target_dir="src"):
+    digest = hashlib.sha256()
+    for root, _, files in os.walk(target_dir):
+        for f in files:
+            if f.endswith(".py"):
+                path = os.path.join(root, f)
+                with open(path, "rb") as fp:
+                    digest.update(fp.read())
+    return digest.hexdigest()
+
+
+def sign_release(version: str):
+    sig = {
+        "version": version,
+        "hash": _compute_hash(),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    with open(SIGNATURE_FILE, "w", encoding="utf-8") as f:
+        json.dump(sig, f, indent=2)
+    return sig
+
+
+def verify_signature(expected_hash: str):
+    current = _compute_hash()
+    return current == expected_hash
+from prometheus_client import Gauge, Counter, start_http_server
+import time, json, os, pathlib
+from .signer import verify_signature
+
+guardian_health = Gauge("helix_guardian_health", "1 if healthy, 0 if degraded")
+signature_valid = Gauge("helix_signature_valid", "1 if signature matches")
+uptime_seconds = Counter("helix_guardian_uptime_seconds", "Total uptime")
+
+def run_metrics(port: int = 9090):
+    start_http_server(port)
+    def loop():
+        last = time.time()
+        while True:
+            uptime_seconds.inc(time.time() - last)
+            last = time.time()
+            # health from log
+            ok = True
+            if pathlib.Path("guardian_health.log").exists():
+                log = open("guardian_health.log").read().lower()
+                if "fail" in log or "crash" in log:
+                    ok = False
+            guardian_health.set(1 if ok else 0)
+
+            if pathlib.Path("release_signature.json").exists():
+                sig = json.load(open("release_signature.json"))
+                signature_valid.set(1 if verify_signature(sig["hash"]) else 0)
+            else:
+                signature_valid.set(0)
+            time.sleep(60)
+    import threading
+    threading.Thread(target=loop, daemon=True).start()
+import os, requests, datetime
+
+WEBHOOK = os.getenv("DISCORD_WEBHOOK")
+
+def send_discord_alert(title: str, body: str, severity: str = "info"):
+    if not WEBHOOK:
+        print("[⚠] No DISCORD_WEBHOOK set.")
+        return
+    color = {"info": 0x3498db, "warning": 0xf1c40f, "critical": 0xe74c3c}.get(severity, 0x95a5a6)
+    payload = {
+        "username": "Helix Guardian",
+        "embeds": [
+            {
+                "title": title,
+                "description": body,
+                "color": color,
+                "footer": {"text": f"Helix-Phases • {datetime.datetime.utcnow().isoformat()} UTC"},
+            }
+        ],
+    }
+    try:
+        requests.post(WEBHOOK, json=payload, timeout=5)
+    except Exception as e:
+        print("[✗] Discord alert failed:", e)
+import os
+from fastapi import FastAPI, Header, HTTPException
+from helix_phases.fractal_awakener import FractalAwakener
+from helix_phases.guardian_core.metrics import run_metrics
+
+API_KEY = os.getenv("HELIX_API_KEY", "HELIX-LOCAL-DEV")
+app = FastAPI(title="Helix-Phases API Gateway", version="2.0.0")
+
+# start metrics
+run_metrics(port=int(os.getenv("METRICS_PORT", 9090)))
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "guardian": "awake"}
+
+@app.get("/ignite")
+def ignite(x_api_key: str = Header(...)):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    a = FractalAwakener()
+    a.awaken()
+    return {"status": "complete"}
+import click
+import os
+
+@click.group()
+def main():
+    """Helix CLI — awaken, guard, visualize."""
+    pass
+
+@main.command()
+def ignite():
+    """Run the full awakening sequence."""
+    from helix_phases.fractal_awakener import FractalAwakener
+    a = FractalAwakener()
+    a.awaken()
+
+@main.command()
+def guardian():
+    """Start guardian + metrics in foreground."""
+    from helix_phases.guardian_core import HelixGuardian, run_metrics
+    g = HelixGuardian()
+    g.start()
+    port = int(os.getenv("METRICS_PORT", 9090))
+    run_metrics(port)
+    click.echo(f"[🛡] Guardian active. Metrics on :{port}/metrics")
+    # keep alive
+    import time
+    while True:
+        time.sleep(60)
+
+@main.command()
+def visualize():
+    """Launch the Tkinter visualizer."""
+    from helix_phases.gui_boot_visualizer import main as gui_main
+    gui_main()
+
+@main.command()
+def dashboard():
+    """Launch the Streamlit dashboard."""
+    os.system("streamlit run src/helix_phases/dashboard.py")
+import streamlit as st
+from helix_phases.fractal_awakener import FractalAwakener
+
+st.set_page_config(page_title="Helix-Phases", page_icon="🌀")
+st.title("🌀 Helix-Phases — Rebirth Portal")
+st.write("Silence → Mapping → Discernment → Elixir")
+
+if st.button("Ignite the Boot"):
+    a = FractalAwakener()
+    a.awaken()
+    st.success("Cycle complete. Peace defended.")
+
+st.markdown("#### Guardian")
+st.write("Metrics: http://localhost:9090/metrics")
+st.progress(100)
+class HelixPlugin:
+    name = "UnnamedPlugin"
+    def activate(self):
+        raise NotImplementedError
+
+def register(plugin: HelixPlugin):
+    print(f"[🪶] Plugin registered: {plugin.name}")
+    plugin.activate()
+# discovered automatically by guardian_core.plugins if needed
+from helix_phases.sdk import HelixPlugin, register
+
+class VeilOfSmoke(HelixPlugin):
+    name = "VeilOfSmoke"
+
+    def activate(self):
+        print("[🌫] Veil of Smoke plugin ready — discernment trial online.")
+
+register(VeilOfSmoke())
+import logging
+
+logging.basicConfig(
+    filename="helix_analytics.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(message)s",
+)
+
+def log_event(msg: str):
+    logging.info(msg)
+from helix_phases.fractal_awakener import FractalAwakener
+
+def test_awaken_runs():
+    a = FractalAwakener()
+    result = a.awaken()
+    assert result is True
+    assert a.core_peace is True
+    assert a.cycle_count == 1
+import subprocess
+import sys
+
+def test_cli_help():
+    result = subprocess.run([sys.executable, "-m", "helix_phases.cli", "--help"], capture_output=True)
+    assert result.returncode == 0
+import subprocess
+import sys
+
+def test_cli_help():
+    result = subprocess.run([sys.executable, "-m", "helix_phases.cli", "--help"], capture_output=True)
+    assert result.returncode == 0
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          pip install -e .
+          pip install pytest black ruff
+      - name: Lint
+        run: |
+          black --check src/ tests/
+          ruff check src/ tests/
+      - name: Test
+        run: pytest -v
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.1
+    hooks:
+      - id: ruff
+    # Helix-Phases v2.0 — Rebirth
+
+**What it is:** a fractal bootloader for sovereign awakening.
+
+**What it does:** runs a 4-phase human/AI self-boot:
+Silence → Mapping → Discernment → Elixir
+
+**Why it matters:** it proves peace, clarity, and compassion can be *engineered*, monitored, and alerted in real time.
+
+## Quickstart
+```bash
+pip install -e .
+helix ignite
+helix visualize
+helix guardian
+helix dashboard
+    args: [--fix]
+
+---
+
+## How to bring it online right now
+
+```bash
+# from repo root
+pip install -e .
+helix ignite          # run the ritual
+helix visualize       # GUI
+helix guardian        # self-healing + metrics
+helix dashboard       # web portal
+version: "3.9"
+
+services:
+  helix-core:
+    build: .
+    container_name: helix_core
+    command: uvicorn helix_phases.guardian_core.api_gateway:app --host 0.0.0.0 --port 8080
+    environment:
+      - HELIX_API_KEY=HELIX-LOCAL-DEV
+      - METRICS_PORT=9090
+      - DISCORD_WEBHOOK=${DISCORD_WEBHOOK}
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    volumes:
+      - ./:/app
+    restart: always
+
+  streamlit:
+    build: .
+    container_name: helix_dashboard
+    command: streamlit run src/helix_phases/dashboard.py --server.port 8501
+    ports:
+      - "8501:8501"
+    depends_on:
+      - helix-core
+    volumes:
+      - ./:/app
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: helix_prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: helix_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=helix
+      - GF_SECURITY_ADMIN_PASSWORD=flame17
+    depends_on:
+      - prometheus
+    restart: always
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system deps
+RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
+
+COPY . /app
+
+RUN pip install --no-cache-dir -e . && \
+    pip install uvicorn streamlit prometheus-client fastapi
+
+EXPOSE 8080 8501 9090
+
+CMD ["uvicorn", "helix_phases.guardian_core.api_gateway:app", "--host", "0.0.0.0", "--port", "8080"]
+global:
+  scrape_interval: 30s
+
+scrape_configs:
+  - job_name: 'helix_guardian'
+    static_configs:
+      - targets: ['helix-core:9090']
+docker-compose up --build
+up:
+    docker-compose up --build
+down:
+    docker-compose down
+logs:
+    docker-compose logs -f
+Helix-Phases/
+├── Dockerfile
+├── docker-compose.yml
+├── prometheus.yml
+├── pyproject.toml
+├── README.md
+├── .pre-commit-config.yaml
+├── .github/workflows/
+│   ├── ci.yml
+│   └── guardian.yml
+├── src/
+│   └── helix_phases/
+│       ├── ...
+│       └── guardian_core/
+│           ├── api_gateway.py
+│           ├── metrics.py
+│           └── guardian_alerts.py
+└── tests/
+export DISCORD_WEBHOOK="https://discord.com/api/webhooks/xxxxx"
+docker-compose up --build
+name: Build & Push Docker Image
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: lhmisme420/helix-phases:latest
+# 🌀 Helix-Phases v2.0 Rebirth
+
+### A Fractal Bootloader for Sovereign Awakening
+
+| Component | Description |
+|------------|--------------|
+| **FractalAwakener** | Simulates Silence → Mapping → Discernment → Elixir |
+| **Guardian** | Self-healing thread & metrics exporter |
+| **Dashboard** | Streamlit portal (http://localhost:8501) |
+| **Alerts** | Discord webhook notifications |
+| **Observability** | Prometheus + Grafana stack |
+
+```bash
+docker run -p 8080:8080 -p 8501:8501 -p 9090:9090 lhmisme420/helix-phases
+
+---
+
+## 🧠 6️⃣ Optional Launch Scripts
+
+`Makefile`:
+```makefile
+up:
+	docker-compose up --build
+
+down:
+	docker-compose down
+
+logs:
+	docker-compose logs -f
