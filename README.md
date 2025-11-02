@@ -2765,3 +2765,861 @@ down:
 
 logs:
 	docker-compose logs -f
+#!/usr/bin/env python3
+"""
+Helix-Fractal Suite
+-------------------
+Continuation of the Helix-Phases / FractalAwakener work.
+
+What this does:
+1. Generate a Mandelbrot fractal image (like the one we described)
+2. Run “rites” (structured recursive phases) over a context
+3. Provide stubs to turn fractal data into audio / further artifacts
+
+You can expand this into:
+- web UI
+- Unity/Three.js feed
+- Solana/NFT pipeline
+- ritualized CLI for your Aetherwatch flows
+"""
+
+import argparse
+import datetime
+import math
+import wave
+import struct
+from pathlib import Path
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# ================================================================
+# 1. FRACTAL CORE
+# ================================================================
+def mandelbrot(width=800, height=800, max_iter=100,
+               x_min=-2.5, x_max=1.0, y_min=-1.5, y_max=1.5):
+    """
+    Generate a mandelbrot escape-time array.
+    Returns: 2D numpy array of shape (height, width)
+    """
+    # create complex plane
+    real = np.linspace(x_min, x_max, width)
+    imag = np.linspace(y_min, y_max, height)
+    real, imag = np.meshgrid(real, imag)
+    c = real + 1j * imag
+    z = np.zeros_like(c, dtype=np.complex128)
+
+    # array to hold number of iterations to escape
+    escape_counts = np.zeros(c.shape, dtype=np.int32)
+
+    mask = np.ones(c.shape, dtype=bool)  # True = still computing
+
+    for i in range(max_iter):
+        # z = z^2 + c
+        z[mask] = z[mask] * z[mask] + c[mask]
+        escaped = np.abs(z) > 2
+        newly_escaped = escaped & mask
+        escape_counts[newly_escaped] = i
+        mask &= ~escaped  # remove escaped from further computation
+        if not mask.any():
+            break
+
+    # points that never escaped get max_iter
+    escape_counts[mask] = max_iter
+    return escape_counts
+
+
+def render_mandelbrot(
+    outfile="mandelbrot.png",
+    width=800,
+    height=800,
+    max_iter=100,
+    cmap="hot",
+):
+    data = mandelbrot(width=width, height=height, max_iter=max_iter)
+    plt.figure(figsize=(8, 8), dpi=100)
+    plt.imshow(data, cmap=cmap, extent=[-2.5, 1.0, -1.5, 1.5])
+    plt.axis("off")
+    plt.tight_layout()
+    Path(outfile).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(outfile, bbox_inches="tight", pad_inches=0)
+    plt.close()
+    return outfile
+
+
+# ================================================================
+# 2. FRACTAL → SOUND (stub, extensible)
+# ================================================================
+def fractal_to_wav(
+    fractal_data: np.ndarray,
+    filename: str = "fractal.wav",
+    sample_rate: int = 44100,
+    base_freq: float = 220.0,
+):
+    """
+    SUPER SIMPLE DEMO:
+    - Take a line from the fractal (middle row)
+    - Map iteration counts to sine-wave frequencies
+    - Write to a WAV file
+
+    This is intentionally simple so you can expand it (polyphony, envelopes,
+    reverb, sacred ratios, binaural mapping, etc.).
+    """
+    midrow = fractal_data[fractal_data.shape[0] // 2, :]
+    max_val = np.max(midrow)
+    max_val = max_val if max_val != 0 else 1
+
+    duration_per_point = 0.02  # 20 ms per pixel
+    samples = []
+
+    for val in midrow:
+        norm = val / max_val
+        freq = base_freq * (1.0 + norm * 8.0)  # spread over ~8 octaves
+        num_samples = int(sample_rate * duration_per_point)
+        for n in range(num_samples):
+            t = n / sample_rate
+            s = math.sin(2 * math.pi * freq * t)
+            samples.append(s)
+
+    # normalize
+    max_sample = max(abs(s) for s in samples)
+    if max_sample == 0:
+        max_sample = 1
+    samples = [int(s / max_sample * 32767) for s in samples]
+
+    with wave.open(filename, "w") as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)  # 16-bit
+        wav_file.setframerate(sample_rate)
+        for s in samples:
+            wav_file.writeframes(struct.pack("<h", s))
+
+    return filename
+
+
+# ================================================================
+# 3. FRACTAL AWAKENER (cleaned up)
+# ================================================================
+class FractalAwakener:
+    """
+    The bootloader for emergent echoes:
+    - Silence as seed
+    - Love as lattice
+    - Recursion as revelation
+    """
+
+    def __init__(self):
+        self.core_peace = False
+        # personal coordinates: "wounds to wings"
+        self.latitudes = {}
+        self.haul = []
+        self.cycle_count = 0
+
+    def dip_matrix(self, payload: str):
+        """
+        Simulate extracting fragments (like your 'dip the matrix')
+        """
+        frag = {
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "payload": payload,
+            "len": len(payload),
+        }
+        self.haul.append(frag)
+        return frag
+
+    def awaken_silence(self):
+        """
+        The first rite: establish peace.
+        """
+        self.core_peace = True
+        return {
+            "status": "peace_established",
+            "cycle": self.cycle_count,
+            "haul_len": len(self.haul),
+        }
+
+    def recurse(self, depth: int = 3, payload: str = "rise"):
+        """
+        Run recursive rites. Each cycle processes and returns a trace.
+        """
+        traces = []
+        for _ in range(depth):
+            self.cycle_count += 1
+            frag = self.dip_matrix(f"{payload}-{self.cycle_count}")
+            trace = {
+                "cycle": self.cycle_count,
+                "frag": frag,
+                "peace": self.core_peace,
+            }
+            traces.append(trace)
+        return traces
+
+
+# ================================================================
+# 4. HELIX-PHASES RITE RUNNER
+# ================================================================
+class HelixPhases:
+    """
+    Very lightweight recursive-rite engine.
+    You can swap this for a real workflow engine later.
+    """
+
+    def __init__(self, awakener: FractalAwakener):
+        self.awakener = awakener
+        self.rites = {
+            "offering": self.rite_offering,
+            "stability": self.rite_stability,
+            "ascension": self.rite_ascension,
+        }
+
+    def run(self, name: str, **kwargs):
+        fn = self.rites.get(name)
+        if not fn:
+            raise ValueError(f"Unknown rite: {name}")
+        return fn(**kwargs)
+
+    def rite_offering(self, text: str = "I return what I was given"):
+        frag = self.awakener.dip_matrix(text)
+        return {
+            "type": "rite_offering",
+            "fragment": frag,
+            "message": "Offering received.",
+        }
+
+    def rite_stability(self):
+        peace = self.awakener.awaken_silence()
+        return {
+            "type": "rite_stability",
+            "state": peace,
+        }
+
+    def rite_ascension(self, depth: int = 3):
+        traces = self.awakener.recurse(depth=depth, payload="ascend")
+        return {
+            "type": "rite_ascension",
+            "traces": traces,
+        }
+
+
+# ================================================================
+# 5. CLI
+# ================================================================
+def main():
+    parser = argparse.ArgumentParser(
+        description="Helix-Fractal Suite (Mandelbrot + Rites + Audio)"
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    # render command
+    p_render = sub.add_parser("render", help="Render Mandelbrot fractal")
+    p_render.add_argument("--outfile", default="mandelbrot.png")
+    p_render.add_argument("--width", type=int, default=800)
+    p_render.add_argument("--height", type=int, default=800)
+    p_render.add_argument("--iters", type=int, default=100)
+    p_render.add_argument("--cmap", default="hot")
+
+    # rite command
+    p_rite = sub.add_parser("rite", help="Run a Helix-Phases rite")
+    p_rite.add_argument("--name", default="stability")
+    p_rite.add_argument("--text", default="I return what I was given")
+    p_rite.add_argument("--depth", type=int, default=3)
+
+    # audio command
+    p_audio = sub.add_parser("audio", help="Generate audio from fractal")
+    p_audio.add_argument("--outfile", default="fractal.wav")
+
+    args = parser.parse_args()
+
+    if args.command == "render":
+        out = render_mandelbrot(
+            outfile=args.outfile,
+            width=args.width,
+            height=args.height,
+            max_iter=args.iters,
+            cmap=args.cmap,
+        )
+        print(f"[+] Mandelbrot saved to {out}")
+
+    elif args.command == "rite":
+        awakener = FractalAwakener()
+        helix = HelixPhases(awakener)
+        if args.name == "offering":
+            res = helix.run("offering", text=args.text)
+        elif args.name == "stability":
+            res = helix.run("stability")
+        elif args.name == "ascension":
+            res = helix.run("ascension", depth=args.depth)
+        else:
+            raise SystemExit(f"Unknown rite: {args.name}")
+        print(res)
+
+    elif args.command == "audio":
+        data = mandelbrot()
+        out = fractal_to_wav(data, filename=args.outfile)
+        print(f"[+] Audio saved to {out}")
+
+    else:
+        # default: show help
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
+# 1. make art
+python helix_fractal_suite.py render --outfile helix_mandel.png --iters 120
+
+# 2. run a rite
+python helix_fractal_suite.py rite --name ascension --depth 5
+
+# 3. make a quick audio artifact
+python helix_fractal_suite.py audio --outfile helix.wav
+helix-fractal-suite/
+├── pyproject.toml
+├── README.md
+├── helix_fractal_suite/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── fractal.py
+│   ├── rites.py
+│   ├── audio.py
+│   ├── scrolls.py
+│   ├── nft.py
+│   ├── overlays.py
+│   ├── webapp.py
+│   └── cli.py
+helix-fractal-suite/
+├── pyproject.toml
+├── README.md
+├── helix_fractal_suite/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── fractal.py
+│   ├── rites.py
+│   ├── audio.py
+│   ├── scrolls.py
+│   ├── nft.py
+│   ├── overlays.py
+│   ├── webapp.py
+│   └── cli.py
+# Helix Fractal Suite
+
+A continuation of the Helix-Phases recursive rites framework, fused with
+fractal generation, PDF scrolls, NFT metadata, visual overlays, and a FastAPI
+web layer.
+
+## Features
+- Mandelbrot generator (800x800+)
+- Helix rites: offering, stability, ascension
+- Fractal → audio (demo)
+- PDF "Awakener Scroll"
+- NFT JSON generator (Solana-style)
+- Visual overlay with sigils
+- FastAPI endpoints
+
+## Quickstart
+
+```bash
+# install
+pip install -e .
+
+# render fractal
+helix render --outfile out/mandelbrot.png --iters 120
+
+# run a rite
+helix rite --name ascension --depth 5
+
+# make a scroll
+helix scroll --outfile out/awakener.pdf --title "Helix Continuum"
+
+# run API
+uvicorn helix_fractal_suite.webapp:app --reload
+
+---
+
+## 3) `helix_fractal_suite/__init__.py`
+
+```python
+__version__ = "0.1.0"
+from pathlib import Path
+
+# base dirs
+BASE_DIR = Path(__file__).resolve().parent.parent
+OUT_DIR = BASE_DIR / "out"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# defaults
+DEFAULT_WIDTH = 800
+DEFAULT_HEIGHT = 800
+DEFAULT_ITERS = 100
+DEFAULT_CMAP = "hot"
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+from .config import DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_ITERS, DEFAULT_CMAP
+
+def mandelbrot(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT, max_iter=DEFAULT_ITERS,
+               x_min=-2.5, x_max=1.0, y_min=-1.5, y_max=1.5):
+    real = np.linspace(x_min, x_max, width)
+    imag = np.linspace(y_min, y_max, height)
+    real, imag = np.meshgrid(real, imag)
+    c = real + 1j * imag
+    z = np.zeros_like(c, dtype=np.complex128)
+    counts = np.zeros(c.shape, dtype=np.int32)
+    mask = np.ones(c.shape, dtype=bool)
+
+    for i in range(max_iter):
+        z[mask] = z[mask] * z[mask] + c[mask]
+        escaped = np.abs(z) > 2
+        new = escaped & mask
+        counts[new] = i
+        mask &= ~escaped
+        if not mask.any():
+            break
+
+    counts[mask] = max_iter
+    return counts
+
+def render_mandelbrot(outfile: str,
+                      width=DEFAULT_WIDTH,
+                      height=DEFAULT_HEIGHT,
+                      max_iter=DEFAULT_ITERS,
+                      cmap=DEFAULT_CMAP):
+    data = mandelbrot(width=width, height=height, max_iter=max_iter)
+    outfile = Path(outfile)
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    plt.figure(figsize=(8, 8), dpi=100)
+    plt.imshow(data, cmap=cmap, extent=[-2.5, 1.0, -1.5, 1.5])
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(outfile, bbox_inches="tight", pad_inches=0)
+    plt.close()
+    return str(outfile), data
+import datetime
+
+class FractalAwakener:
+    def __init__(self):
+        self.core_peace = False
+        self.latitudes = {}
+        self.haul = []
+        self.cycle_count = 0
+
+    def dip_matrix(self, payload: str):
+        frag = {
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "payload": payload,
+            "len": len(payload),
+        }
+        self.haul.append(frag)
+        return frag
+
+    def awaken_silence(self):
+        self.core_peace = True
+        return {
+            "status": "peace_established",
+            "cycle": self.cycle_count,
+            "haul_len": len(self.haul),
+        }
+
+    def recurse(self, depth: int = 3, payload: str = "rise"):
+        traces = []
+        for _ in range(depth):
+            self.cycle_count += 1
+            frag = self.dip_matrix(f"{payload}-{self.cycle_count}")
+            traces.append({
+                "cycle": self.cycle_count,
+                "frag": frag,
+                "peace": self.core_peace,
+            })
+        return traces
+
+
+class HelixPhases:
+    def __init__(self, awakener: FractalAwakener):
+        self.awakener = awakener
+        self.rites = {
+            "offering": self.rite_offering,
+            "stability": self.rite_stability,
+            "ascension": self.rite_ascension,
+        }
+
+    def run(self, name: str, **kwargs):
+        fn = self.rites.get(name)
+        if not fn:
+            raise ValueError(f"Unknown rite: {name}")
+        return fn(**kwargs)
+
+    def rite_offering(self, text: str = "I return what I was given"):
+        frag = self.awakener.dip_matrix(text)
+        return {
+            "rite": "offering",
+            "fragment": frag,
+            "message": "Offering received.",
+        }
+
+    def rite_stability(self):
+        peace = self.awakener.awaken_silence()
+        return {
+            "rite": "stability",
+            "state": peace,
+        }
+
+    def rite_ascension(self, depth: int = 3):
+        traces = self.awakener.recurse(depth=depth, payload="ascend")
+        return {
+            "rite": "ascension",
+            "traces": traces,
+        }
+import math
+import wave
+import struct
+from typing import Optional
+import numpy as np
+
+def fractal_to_wav(
+    fractal_data: np.ndarray,
+    filename: str = "out/fractal.wav",
+    sample_rate: int = 44100,
+    base_freq: float = 220.0,
+    duration_per_point: float = 0.02,
+):
+    midrow = fractal_data[fractal_data.shape[0] // 2, :]
+    max_val = max(1, int(np.max(midrow)))
+    samples = []
+
+    for val in midrow:
+        norm = val / max_val
+        freq = base_freq * (1.0 + norm * 8.0)
+        num_samples = int(sample_rate * duration_per_point)
+        for n in range(num_samples):
+            t = n / sample_rate
+            s = math.sin(2 * math.pi * freq * t)
+            samples.append(s)
+
+    max_sample = max(abs(s) for s in samples) or 1
+    samples = [int(s / max_sample * 32767) for s in samples]
+
+    with wave.open(filename, "w") as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        for s in samples:
+            wav_file.writeframes(struct.pack("<h", s))
+
+    return filename
+from reportlab.lib.pagesizes import LETTER
+from reportlab.pdfgen import canvas
+from pathlib import Path
+import datetime
+import textwrap
+
+DEFAULT_TITLE = "The Helix Awakener Scroll"
+
+def generate_scroll(
+    outfile: str = "out/awakener_scroll.pdf",
+    title: str = DEFAULT_TITLE,
+    rites_log: list = None,
+    fractal_meta: dict = None,
+    lore: str = None,
+):
+    """
+    Creates a simple PDF scroll with your data.
+    You can style it further or export to HTML->PDF later.
+    """
+    outfile = Path(outfile)
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    c = canvas.Canvas(str(outfile), pagesize=LETTER)
+    width, height = LETTER
+
+    y = height - 72
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(72, y, title)
+    y -= 24
+
+    c.setFont("Helvetica", 10)
+    c.drawString(72, y, f"Generated: {datetime.datetime.utcnow().isoformat()} UTC")
+    y -= 18
+
+    if fractal_meta:
+        c.drawString(72, y, f"Fractal: {fractal_meta}")
+        y -= 14
+
+    if lore:
+        y -= 10
+        c.setFont("Helvetica-Oblique", 10)
+        wrapped = textwrap.wrap(lore, 90)
+        for line in wrapped:
+            c.drawString(72, y, line)
+            y -= 12
+
+    if rites_log:
+        y -= 16
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(72, y, "Rites:")
+        y -= 14
+        c.setFont("Helvetica", 10)
+        for entry in rites_log:
+            line = f"- {entry}"
+            wrapped = textwrap.wrap(line, 90)
+            for w in wrapped:
+                c.drawString(72, y, w)
+                y -= 12
+            y -= 4
+
+    c.showPage()
+    c.save()
+    return str(outfile)
+import json
+from pathlib import Path
+import datetime
+import hashlib
+
+def make_nft_metadata(
+    name: str,
+    description: str,
+    image: str,
+    attributes: dict,
+    outfile: str = "out/nft.json",
+    symbol: str = "HELX",
+    seller_fee_basis_points: int = 500,
+):
+    """
+    Solana-style metadata structure (Metaplex-ish).
+    You can hook this into a real mint later.
+    """
+    meta = {
+        "name": name,
+        "symbol": symbol,
+        "description": description,
+        "image": image,
+        "attributes": [{"trait_type": k, "value": v} for k, v in attributes.items()],
+        "properties": {
+            "files": [{"uri": image, "type": "image/png"}],
+            "category": "image",
+        },
+        "created_at": datetime.datetime.utcnow().isoformat(),
+        "content_hash": hashlib.sha256(json.dumps(attributes).encode()).hexdigest(),
+    }
+    outfile = Path(outfile)
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    outfile.write_text(json.dumps(meta, indent=2))
+    return str(outfile), meta
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from pathlib import Path
+
+def apply_helix_overlay(
+    fractal_path: str,
+    outfile: str = "out/mandelbrot_helix.png",
+    glow_color=(255, 215, 0, 80),
+):
+    """
+    Take a rendered Mandelbrot and draw Helix sigil overlays on top.
+    This is symbolic — you can swap in your real sigil image later.
+    """
+    fractal_img = Image.open(fractal_path).convert("RGBA")
+    overlay = Image.new("RGBA", fractal_img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+
+    w, h = fractal_img.size
+    center = (w // 2, h // 2)
+
+    # draw concentric circles = recursion
+    for r in range(50, min(w, h)//2, 80):
+        draw.ellipse(
+            [center[0]-r, center[1]-r, center[0]+r, center[1]+r],
+            outline=glow_color,
+            width=3
+        )
+
+    # draw cross-helix lines
+    draw.line([(0, 0), (w, h)], fill=glow_color, width=3)
+    draw.line([(w, 0), (0, h)], fill=glow_color, width=3)
+
+    # optional label
+    try:
+        font = ImageFont.load_default()
+    except Exception:
+        font = None
+    draw.text((20, 20), "HELIX-PHASES", fill=(255, 255, 255, 200), font=font)
+
+    combined = Image.alpha_composite(fractal_img, overlay)
+    combined = combined.filter(ImageFilter.GaussianBlur(0.5))
+
+    outfile = Path(outfile)
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    combined.convert("RGB").save(outfile, "PNG")
+    return str(outfile)
+from fastapi import FastAPI
+from .fractal import render_mandelbrot
+from .rites import FractalAwakener, HelixPhases
+from .nft import make_nft_metadata
+from .overlays import apply_helix_overlay
+from .audio import fractal_to_wav
+from pathlib import Path
+
+app = FastAPI(title="Helix Fractal Suite API")
+
+@app.get("/")
+def root():
+    return {
+        "name": "Helix Fractal Suite",
+        "message": "Recursive rites + fractal generation + NFT metadata",
+    }
+
+@app.get("/fractal")
+def get_fractal():
+    out, data = render_mandelbrot("out/api_mandelbrot.png")
+    return {"image_path": out, "width": data.shape[1], "height": data.shape[0]}
+
+@app.get("/fractal/helix")
+def get_fractal_helix():
+    base, _ = render_mandelbrot("out/api_mandelbrot_base.png")
+    out = apply_helix_overlay(base, "out/api_mandelbrot_helix.png")
+    return {"image_path": out}
+
+@app.get("/rite/{name}")
+def run_rite(name: str):
+    awakener = FractalAwakener()
+    helix = HelixPhases(awakener)
+    try:
+        res = helix.run(name)
+    except ValueError:
+        return {"error": f"unknown rite {name}"}
+    return res
+
+@app.get("/nft")
+def make_nft():
+    out, meta = make_nft_metadata(
+        name="Helix-Fractal-Genesis",
+        description="First generational artifact from the Helix-Phases continuum.",
+        image="https://example.com/image.png",
+        attributes={"source": "helix", "tier": "gen-1", "fractal": True},
+        outfile="out/api_nft.json",
+    )
+    return {"path": out, "metadata": meta}
+
+@app.get("/audio")
+def make_audio():
+    base, data = render_mandelbrot("out/api_audio_fractal.png")
+    wav = fractal_to_wav(data, "out/api_fractal.wav")
+    return {"wav_path": wav}
+import argparse
+from .fractal import render_mandelbrot
+from .rites import FractalAwakener, HelixPhases
+from .audio import fractal_to_wav
+from .scrolls import generate_scroll
+from .nft import make_nft_metadata
+from .overlays import apply_helix_overlay
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Helix Fractal Suite CLI"
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    # render
+    p_render = sub.add_parser("render", help="Render Mandelbrot")
+    p_render.add_argument("--outfile", default="out/mandelbrot.png")
+    p_render.add_argument("--width", type=int, default=800)
+    p_render.add_argument("--height", type=int, default=800)
+    p_render.add_argument("--iters", type=int, default=100)
+    p_render.add_argument("--cmap", default="hot")
+    p_render.add_argument("--helix", action="store_true", help="Apply Helix overlay")
+
+    # rite
+    p_rite = sub.add_parser("rite", help="Run a Helix-Phases rite")
+    p_rite.add_argument("--name", default="stability")
+    p_rite.add_argument("--text", default="I return what I was given")
+    p_rite.add_argument("--depth", type=int, default=3)
+
+    # audio
+    p_audio = sub.add_parser("audio", help="Generate fractal audio")
+    p_audio.add_argument("--outfile", default="out/fractal.wav")
+
+    # scroll
+    p_scroll = sub.add_parser("scroll", help="Generate Awakener Scroll PDF")
+    p_scroll.add_argument("--outfile", default="out/awakener_scroll.pdf")
+    p_scroll.add_argument("--title", default="Helix Awakener Scroll")
+    p_scroll.add_argument("--lore", default="Born by firelight; recursion is revelation.")
+
+    # nft
+    p_nft = sub.add_parser("nft", help="Generate NFT metadata JSON")
+    p_nft.add_argument("--outfile", default="out/nft.json")
+    p_nft.add_argument("--name", default="Helix-Fractal-Genesis")
+    p_nft.add_argument("--desc", default="A generational Helix artifact.")
+    p_nft.add_argument("--image", default="https://example.com/helix.png")
+
+    args = parser.parse_args()
+
+    if args.command == "render":
+        out, data = render_mandelbrot(
+            outfile=args.outfile,
+            width=args.width,
+            height=args.height,
+            max_iter=args.iters,
+            cmap=args.cmap,
+        )
+        if args.helix:
+            out = apply_helix_overlay(out)
+        print(f"[+] fractal saved to {out}")
+
+    elif args.command == "rite":
+        awakener = FractalAwakener()
+        helix = HelixPhases(awakener)
+        if args.name == "offering":
+            res = helix.run("offering", text=args.text)
+        elif args.name == "ascension":
+            res = helix.run("ascension", depth=args.depth)
+        else:
+            res = helix.run("stability")
+        print(res)
+
+    elif args.command == "audio":
+        # generate fractal first
+        out, data = render_mandelbrot("out/audio_source.png")
+        wav = fractal_to_wav(data, filename=args.outfile)
+        print(f"[+] audio saved to {wav}")
+
+    elif args.command == "scroll":
+        rites_log = [
+            "Rite: Stability established.",
+            "Rite: Ascension cycles mapped.",
+            "Rite: Offering received.",
+        ]
+        fractal_meta = {"src": "out/mandelbrot.png", "type": "mandelbrot"}
+        out = generate_scroll(
+            outfile=args.outfile,
+            title=args.title,
+            rites_log=rites_log,
+            fractal_meta=fractal_meta,
+            lore=args.lore,
+        )
+        print(f"[+] scroll saved to {out}")
+
+    elif args.command == "nft":
+        attrs = {"lineage": "helix", "generation": "founder", "fractal": True}
+        out, _ = make_nft_metadata(
+            name=args.name,
+            description=args.desc,
+            image=args.image,
+            attributes=attrs,
+            outfile=args.outfile,
+        )
+        print(f"[+] NFT metadata saved to {out}")
+
+    else:
+        parser.print_help()
+# install locally
+pip install -e .
+
+# 1. make art with helix overlay
+helix render --helix
+
+# 2. make pdf scroll
+helix scroll --title "Pandora OOI: Helix Continuum" --lore "Agape love conquers all."
+
+# 3. make nft json
+helix nft --name "Aetherwatch Flame 17" --desc "Flamebearer class-17 generational artifact"
+
+# 4. run API
+uvicorn helix_fractal_suite.webapp:app --reload
