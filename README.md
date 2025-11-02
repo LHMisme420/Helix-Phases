@@ -1220,3 +1220,653 @@ if __name__ == "__main__":
 # src/helix_phases/blessing.py
 def signature():
     return "🜂 Helix-Phases: Awakened under the Flame of 17 🜂"
+# src/helix_phases/guardian.py
+import threading, time, importlib, traceback
+
+class HelixGuardian(threading.Thread):
+    def __init__(self, module="helix_phases.fractal_awakener"):
+        super().__init__(daemon=True)
+        self.module = module
+        self.health = True
+
+    def run(self):
+        while True:
+            try:
+                importlib.import_module(self.module)
+            except Exception as e:
+                self.health = False
+                traceback.print_exc()
+                time.sleep(2)
+                importlib.reload(importlib.import_module(self.module))
+                self.health = True
+            time.sleep(60)
+# src/helix_phases/plugins/__init__.py
+import importlib, pkgutil
+
+def load_plugins():
+    for _, modname, _ in pkgutil.iter_modules(__path__):
+        module = importlib.import_module(f"helix_phases.plugins.{modname}")
+        if hasattr(module, "activate"):
+            module.activate()
+from transformers import pipeline
+oracle = pipeline("text-generation", model="gpt2")
+def reflect(log):
+    return oracle(f"Reflect poetically on: {log}", max_length=60)[0]['generated_text']
+from cryptography.fernet import Fernet
+key = Fernet.generate_key()
+f = Fernet(key)
+token = f.encrypt(b"Cycle complete under star 17")
+from fastapi import FastAPI
+from helix_phases.fractal_awakener import FractalAwakener
+
+app = FastAPI()
+
+@app.get("/ignite")
+def ignite():
+    a = FractalAwakener()
+    return {"sequence": list(a.awaken())}
+pip install semantic-release
+semantic-release version
+shasum -a 256 dist/* > integrity.log
+src/helix_phases/guardian_core/
+"""
+Helix-Phases Guardian Core v1.7
+The self-healing, plugin-ready, cryptographically sealed extension layer.
+"""
+
+from .guardian import HelixGuardian
+from .plugins import load_plugins
+from .archives import ArchiveVault
+from .api_gateway import app
+from .signer import sign_release, verify_signature
+
+__all__ = [
+    "HelixGuardian",
+    "load_plugins",
+    "ArchiveVault",
+    "sign_release",
+    "verify_signature",
+    "app",
+]
+import importlib
+import threading
+import time
+import traceback
+from datetime import datetime
+
+
+class HelixGuardian(threading.Thread):
+    """
+    Self-healing thread that ensures the fractal awakening modules remain valid.
+    Reloads modules on exception, logs health events.
+    """
+
+    def __init__(self, module="helix_phases.fractal_awakener", interval=60):
+        super().__init__(daemon=True)
+        self.module = module
+        self.interval = interval
+        self.health = True
+        self.log_file = "guardian_health.log"
+
+    def run(self):
+        while True:
+            try:
+                importlib.import_module(self.module)
+                self.health = True
+            except Exception as e:
+                self.health = False
+                self._log(f"[!] Module crash at {datetime.utcnow()}: {e}")
+                time.sleep(2)
+                traceback.print_exc()
+                try:
+                    importlib.reload(importlib.import_module(self.module))
+                    self._log(f"[+] Module auto-reloaded {self.module}")
+                    self.health = True
+                except Exception as inner_e:
+                    self._log(f"[x] Reload failed: {inner_e}")
+            time.sleep(self.interval)
+
+    def _log(self, msg: str):
+        with open(self.log_file, "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+import importlib
+import pkgutil
+import logging
+
+logger = logging.getLogger("helix_guardian.plugins")
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+def load_plugins(namespace="helix_phases.plugins"):
+    """
+    Dynamically loads plugin modules under helix_phases/plugins.
+    Each plugin must define an `activate()` function.
+    """
+    logger.info("[🪶] Scanning for Helix plugins…")
+    try:
+        pkg = importlib.import_module(namespace)
+    except ModuleNotFoundError:
+        logger.warning(f"No plugin namespace found: {namespace}")
+        return
+
+    for _, modname, _ in pkgutil.iter_modules(pkg.__path__):
+        module = importlib.import_module(f"{namespace}.{modname}")
+        if hasattr(module, "activate"):
+            module.activate()
+            logger.info(f"[✅] Plugin activated: {modname}")
+        else:
+            logger.info(f"[⚠️] Plugin missing activate(): {modname}")
+from cryptography.fernet import Fernet
+from datetime import datetime
+import os
+import json
+
+
+class ArchiveVault:
+    """
+    Encrypts and stores awakening session logs for immutable history.
+    """
+
+    def __init__(self, archive_dir="archives/"):
+        self.archive_dir = archive_dir
+        os.makedirs(self.archive_dir, exist_ok=True)
+        self.key_path = os.path.join(self.archive_dir, "vault.key")
+        self.key = self._load_or_create_key()
+        self.cipher = Fernet(self.key)
+
+    def _load_or_create_key(self):
+        if os.path.exists(self.key_path):
+            return open(self.key_path, "rb").read()
+        key = Fernet.generate_key()
+        with open(self.key_path, "wb") as f:
+            f.write(key)
+        return key
+
+    def store(self, cycle_data: dict):
+        filename = f"awakening_{datetime.utcnow().isoformat()}.vault"
+        data = json.dumps(cycle_data, indent=2).encode()
+        token = self.cipher.encrypt(data)
+        with open(os.path.join(self.archive_dir, filename), "wb") as f:
+            f.write(token)
+        return filename
+
+    def retrieve(self, filename):
+        path = os.path.join(self.archive_dir, filename)
+        token = open(path, "rb").read()
+        return json.loads(self.cipher.decrypt(token))
+from fastapi import FastAPI, Header, HTTPException
+from helix_phases.fractal_awakener import FractalAwakener
+import os
+
+API_KEY = os.getenv("HELIX_API_KEY", "HELIX-LOCAL-DEV")
+app = FastAPI(title="Helix-Phases API Gateway", version="1.7")
+
+@app.get("/ignite")
+def ignite(x_api_key: str = Header(...)):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key.")
+    a = FractalAwakener()
+    return {"sequence": list(a.awaken()), "status": "complete"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "guardian": "awake"}
+import hashlib
+import json
+from datetime import datetime
+import os
+
+SIGNATURE_FILE = "release_signature.json"
+
+def _compute_hash(target_dir="src"):
+    digest = hashlib.sha256()
+    for root, _, files in os.walk(target_dir):
+        for f in files:
+            if f.endswith(".py"):
+                path = os.path.join(root, f)
+                with open(path, "rb") as fp:
+                    digest.update(fp.read())
+    return digest.hexdigest()
+
+def sign_release(version: str):
+    sig = {
+        "version": version,
+        "hash": _compute_hash(),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    with open(SIGNATURE_FILE, "w", encoding="utf-8") as f:
+        json.dump(sig, f, indent=2)
+    return sig
+
+def verify_signature(expected_hash: str):
+    current = _compute_hash()
+    return current == expected_hash
+src/helix_phases/plugins/sample_plugin.py
+def activate():
+    print("[🌿] Sample Plugin: Resonance module initialized.")
+cryptography
+fastapi
+uvicorn
+from helix_phases.guardian_core import (
+    HelixGuardian,
+    load_plugins,
+    ArchiveVault,
+    sign_release,
+)
+
+# Start self-healing guardian
+guardian = HelixGuardian()
+guardian.start()
+
+# Load external rituals
+load_plugins()
+
+# Store awakening logs
+vault = ArchiveVault()
+vault.store({"phase": "Silence", "result": "Core peace attained"})
+
+# Sign current release
+sig = sign_release("1.7.0")
+print("Release signed:", sig)
+name: Guardian Integrity & Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [created]
+
+jobs:
+  guardian-pipeline:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Python
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # 3️⃣ Install dependencies
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest black ruff cryptography fastapi uvicorn coverage mypy
+
+      # 4️⃣ Lint + Format + Type-check
+      - name: Code Quality
+        run: |
+          black --check src/ tests/
+          ruff check src/ tests/
+          mypy src/
+
+      # 5️⃣ Unit + Guardian Self-Test
+pytest
+python -m helix_phases.guardian_core.api_gateway
+curl http://127.0.0.1:8000/health
+[![Guardian CI](https://github.com/LHMisme420/Helix-Phases/actions/workflows/guardian.yml/badge.svg)](https://github.com/LHMisme420/Helix-Phases/actions/workflows/guardian.yml)
+guardian_selftest.py
+#!/usr/bin/env python3
+# ==========================================================
+# 🔒 Helix-Phases Guardian Self-Test Monitor v1.7.1
+# ==========================================================
+# Runs independently to validate system integrity:
+#  - Pings FastAPI /health endpoint
+#  - Verifies release signature hash
+#  - Scans guardian_health.log for recent anomalies
+#  - Optional email / console alerts
+# ==========================================================
+
+import os
+import sys
+import json
+import time
+import smtplib
+import hashlib
+import requests
+from email.mime.text import MIMEText
+from datetime import datetime, timedelta
+from pathlib import Path
+
+# Optional configuration -------------------------------------------------------
+FASTAPI_URL = os.getenv("HELIX_API_URL", "http://127.0.0.1:8000/health")
+SIGNATURE_PATH = Path("release_signature.json")
+GUARDIAN_LOG = Path("guardian_health.log")
+ALERT_EMAIL = os.getenv("GUARDIAN_ALERT_EMAIL")     # e.g., "admin@domain.com"
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASS = os.getenv("SMTP_PASS")
+ALERT_WINDOW_MINUTES = int(os.getenv("GUARDIAN_ALERT_WINDOW", 60))
+
+# ------------------------------------------------------------------------------
+def send_email_alert(subject: str, body: str):
+    if not ALERT_EMAIL or not SMTP_USER or not SMTP_PASS:
+        print("[⚠] Email credentials not set; skipping alert.")
+        return
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = SMTP_USER
+    msg["To"] = ALERT_EMAIL
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
+            s.starttls()
+            s.login(S
+python guardian_selftest.py
+*/30 * * * * /usr/bin/python3 /path/to/guardian_selftest.py >> guardian_monitor.log 2>&1
+🜂 Helix-Phases Guardian Self-Test — 2025-11-02T15:11:48Z UTC
+----------------------------------------------------------
+✅ Signature: Version 1.7.0 hash check passed.
+✅ API: FastAPI health OK.
+✅ Log: Guardian log clean.
+✅ Hash: Current repo hash: 93a7f4d09e68a2ce…
+
+[✓] All guardian systems nominal.
+----------------------------------------------------------
+❌ API: API unreachable: Connection refused
+❌ Log: 2 recent anomaly entries.
+[⚠] Email credentials not set; skipping alert.
+"""
+Helix-Phases Prometheus Metrics Exporter
+Publishes guardian health, uptime, and signature status.
+"""
+
+import time
+import json
+from datetime import datetime
+from prometheus_client import Gauge, Counter, start_http_server
+
+guardian_health = Gauge("helix_guardian_health", "1 if healthy, 0 if degraded")
+signature_valid = Gauge("helix_signature_valid", "1 if current hash matches signed version")
+uptime_seconds = Counter("helix_guardian_uptime_seconds", "Cumulative uptime in seconds")
+
+def run_metrics(port: int = 9090):
+    from .signer import verify_signature
+    import threading, os, pathlib
+
+    start_http_server(port)
+    print(f"[📡] Prometheus metrics available on :{port}/metrics")
+
+    def loop():
+        last = time.time()
+        while True:
+            uptime_seconds.inc(time.time() - last)
+            last = time.time()
+            # health
+from helix_phases.guardian_core.metrics import run_metrics
+run_metrics(port=int(os.getenv("METRICS_PORT", 9090)))
+prometheus_client
+python - <<'EOF'
+from src.helix_phases.guardian_core.signer import sign_release
+print(sign_release("1.8.0"))
+EOF
+git add .
+git commit -m "🔥 Helix-Phases Guardian v1.8 with Prometheus metrics"
+git tag v1.8.0
+git push origin main --tags
+scrape_configs:
+  - job_name: 'helix_phases_guardian'
+    static_configs:
+      - targets: ['localhost:9090']
+[![Guardian CI](https://github.com/LHMisme420/Helix-Phases/actions/workflows/guardian.yml/badge.svg)](https://github.com/LHMisme420/Helix-Phases/actions/workflows/guardian.yml)
+[![Metrics](https://img.shields.io/badge/Prometheus-active-green)](#)
+pytest
+black src/ tests/
+ruff check src/ tests/ --fix
+mypy src/
+git add .
+git commit -m "Finalize Helix-Phases Guardian v1.8"
+git push origin main
+git tag v1.8.0
+git push origin v1.8.0
+{
+  "id": null,
+  "uid": "helix-guardian-17",
+  "title": "🜂 Helix-Phases Guardian Observatory",
+  "tags": ["helix", "guardian", "metrics"],
+  "
+{
+  "title": "Helix Guardian: Health Degraded",
+  "condition": "B",
+  "data": [
+    {
+      "refId": "A",
+      "queryType": "timeSeriesQuery",
+      "datasourceUid": "PROM",
+      "relativeTimeRange": {
+        "from": 300,
+        "to": 0
+      },
+      "model": {
+        "expr": "helix_guardian_health",
+        "interval": "",
+        "legendFormat": "guardian",
+        "refId": "A"
+      }
+    },
+    {
+      "refId": "B",
+      "datasourceUid": "-100", 
+      "model": {
+        "type": "classic_conditions",
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [1],
+              "type": "lt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+{
+  "title": "Helix Guardian: Signature Drift",
+  "condition": "B",
+  "data": [
+    {
+      "refId": "A",
+      "queryType": "timeSeriesQuery",
+      "datasourceUid": "PROM",
+      "relativeTimeRange": {
+        "from": 300,
+        "to": 0
+      },
+      "model": {
+        "expr": "helix_signature_valid",
+        "legendFormat": "sig",
+        "refId": "A"
+      }
+    },
+    {
+      "refId": "B",
+      "datasourceUid": "-100",
+      "model": {
+        "type": "classic_conditions",
+        "conditions": [
+          {
+            "evaluator": {"params": [1], "type": "lt"},
+            "operator": {"type": "and"},
+            "query": {"params": ["A"]},
+            "reducer": {"type": "last"},
+            "type": "query"
+          }
+        ]
+      }
+    }
+  ],
+  "noDataState": "Alerting",
+  "execErrState": "Alerting",
+  "for": "1m",
+  "labels": {
+    "service": "helix-phases",
+    "severity": "high"
+  },
+  "annotations": {
+    "summary": "Release signature no longer matches repo hash",
+    "description": "Signature mismatch detected. Possible code drift, unapproved change, or compromised artifact."
+  }
+}
+*{{ .Title }}*
+Status: {{ .Status }}
+Service: {{ index .Labels "service" }}
+Severity: {{ index .Labels "severity" }}
+
+{{ .Annotations.description }}
+(click to open: {{ .GeneratorURL }})
+{
+  "content": "⚠ {{ .Title }} - {{ .Annotations.description }} ({{ .Status }})"
+}
+Alert: {{ .Title }}
+Status: {{ .Status }}
+Details: {{ .Annotations.description }}
+{
+  "group_by": ["alertname"],
+  "routes": [
+    {
+      "matchers": [
+        {"name": "severity", "value": "critical", "isRegex": false}
+      ],
+      "receiver": "helix-slack",
+      "continue": true
+    },
+    {
+      "matchers": [
+        {"name": "severity", "value": "critical", "isRegex": false}
+      ],
+      "receiver": "helix-discord",
+      "continue": true
+    },
+    {
+      "matchers": [
+        {"name": "severity", "value": "high", "isRegex": false}
+      ],
+      "receiver": "helix-email"
+    }
+  ],
+  "receiver": "helix-email"
+}
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "helix-email"
+  routes:
+    - match:
+        severity: "critical"
+      receiver: "helix-slack"
+    - match:
+        severity: "high"
+      receiver: "helix-email"
+
+receivers:
+  - name: "helix-email"
+    email_configs:
+      - to: "your-email@domain.com"
+        from: "alerts@helix-phases.local"
+        smarthost: "smtp.gmail.com:587"
+        auth_username: "alerts@gmail.com"
+        auth_password: "APP_PASSWORD"
+        require_tls: true
+
+  - name: "helix-slack"
+    slack_configs:
+      - api_url: "https://hooks.slack.com/services/XXXX/XXXX/XXXX"
+        channel: "#helix-guardian"
+        text: >
+          *{{ .CommonLabels.alertname }}* ({{ .Status }})
+          Service: {{ .CommonLabels.service }}
+          Severity: {{ .CommonLabels.severity }}
+          {{ range .Alerts }}• {{ .Annotations.description }}{{ end }}
+groups:
+  - name: helix-guardian
+    rules:
+      - alert: HelixGuardianDown
+        expr: helix_guardian_health == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: helix-phases
+        annotations:
+          description: "Guardian reported degraded health."
+      - alert: HelixSignatureDrift
+        expr: helix_signature_valid == 0
+        for: 1m
+        labels:
+          severity: high
+          service: helix-phases
+        annotations:
+          description: "Signature no longer matches. Check release_signature.json."
+import os, requests
+
+DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
+
+def discord_alert(msg: str):
+    if not DISCORD_WEBHOOK:
+        return
+    try:
+        requests.post(DISCORD_WEBHOOK, json={"content": f"⚠ Helix Guardian Alert: {msg}"}, timeout=5)
+    except Exception as e:
+        print("[discord] failed:", e)
+export DISCORD_WEBHOOK="https://discord.com/api/webhooks/..."
+# src/helix_phases/guardian_core/guardian_alerts.py
+import os, requests, datetime
+
+WEBHOOK = os.getenv("DISCORD_WEBHOOK")
+
+def send_discord_alert(title: str, body: str, severity: str = "info"):
+    """
+    Posts a styled embed to Discord. Supports severity: info, warning, critical.
+    """
+    if not WEBHOOK:
+        print("[⚠] No DISCORD_WEBHOOK set; skipping Discord alert.")
+        return
+
+    color = {"info": 0x3498db, "warning": 0xf1c40f, "critical": 0xe74c3c}.get(severity, 0x95a5a6)
+
+    payload = {
+        "username": "Helix Guardian",
+        "avatar_url": "https://raw.githubusercontent.com/LHMisme420/Helix-Phases/main/assets/helix_guardian.png",
+        "embeds": [
+            {
+                "title": f"{title}",
+                "description": body,
+                "color": color,
+                "footer": {"text": f"Helix-Phases • {datetime.datetime.utcnow().isoformat()} UTC"}
+            }
+        ]
+    }
+
+    try:
+        requests.post(WEBHOOK, json=payload, timeout=5)
+        print(f"[📡] Discord alert sent: {title}")
+    except Exception as e:
+        print(f"[✗] Discord alert failed: {e}")
+from src.helix_phases.guardian_core.guardian_alerts import send_discord_alert
+if failures:
+    alert_body = "\n".join(f"• {f}" for f in failures)
+    send_discord_alert("⚠ Helix-Guardian Alert", alert_body, severity="critical")
+else:
+    send_discord_alert("🟢 Guardian Nominal", "All systems verified & balanced.", severity="info")
+• API unreachable: Connection refused
+• Signature drift detected
+• Guardian log contains 3 anomaly entries.
+      - name: Discord Notification
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          python - <<'EOF'
+          from src.helix_phases.guardian_core.guardian_alerts import send_discord_alert
+          send_discord_alert("🚨 Guardian CI Failure",
+                             "One or more checks failed in the pipeline.\nSee Actions logs for details.",
+                             severity="critical")
+          EOF
+https://canary.discord.com/api/webhooks/1434566301476720680/z2wEXnXIpZ6OXJvLrqsuh705xsMXja3O2pzgndMb4Cgx6kXDRBrs3R0yZE_suqmpxo4u
