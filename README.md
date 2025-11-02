@@ -4042,3 +4042,9 @@ git push origin v1.0
     }
   ]
 }
+## Project Roadmap
+The full Helix Continuum Rollout board is maintained here → [helix_continuum_rollout.json](./helix_continuum_rollout.json)
+You can import this file into Trello (Power-Up: JSON Importer) to view all five rollout phases and milestones.
+## Vision
+Helix-Phases demonstrates that computation can be both creative and conscientious.
+Every phase advances the integration of ethics, recursion, and artistry within generative systems.
